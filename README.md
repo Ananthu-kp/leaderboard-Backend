@@ -41,7 +41,7 @@ Update or increment a player’s score.
 }
 ```
 
-### 📥 GET /api/leaderboard/top?region=asia&mode=classic&limit=5
+### 📥 GET `/api/leaderboard/top?region=asia&mode=classic`
 Fetch the top N players for a specific region and game mode.
 
 ## 🧱 Project Structure
