@@ -45,7 +45,7 @@ Update or increment a player’s score.
 Fetch the top N players for a specific region and game mode.
 
 ## 🧱 Project Structure
-
+```
 leaderboard-system/
 ├── config/
 │   └── redisClient.js          # Redis connection
@@ -59,7 +59,7 @@ leaderboard-system/
 ├── .gitignore                  # Git ignore file
 ├── package.json
 └── README.md
-
+```
 ---
 
 ## ⚙️ Setup Instructions
