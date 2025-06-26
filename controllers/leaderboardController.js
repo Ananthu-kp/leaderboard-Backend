@@ -28,32 +28,48 @@ const updateScore = async (req, res) => {
 };
 
 const getTopPlayers = async (req, res) => {
-  const { region, mode, limit = 10 } = req.query;
-
-  if (!region || !mode) {
-    return res.status(400).json({ error: 'Missing region or mode' });
-  }
-
+  let { region, mode, limit = 10 } = req.query;
   const today = new Date().toISOString().split('T')[0];
-  const key = `leaderboard:${region}:${mode}:${today}`;
+  let keys = [];
 
   try {
-    const top = await redis.zrevrange(key, 0, limit - 1, 'WITHSCORES');
-    const players = [];
-
-    for (let i = 0; i < top.length; i += 2) {
-      const id = top[i];
-      const score = top[i + 1];
-      const meta = await redis.hgetall(`player:${id}`);
-      players.push({ id, name: meta.name, score: Number(score) });
+    if (region && mode) {
+      keys = [`leaderboard:${region}:${mode}:${today}`];
+    } else {
+      const combos = await redis.smembers('leaderboard:keys');
+      keys = combos.map(combo => `leaderboard:${combo}:${today}`);
     }
 
-    res.status(200).json(players);
+    const allPlayers = [];
+
+    for (const key of keys) {
+      const top = await redis.zrevrange(key, 0, limit - 1, 'WITHSCORES');
+
+      for (let i = 0; i < top.length; i += 2) {
+        const id = top[i];
+        const score = top[i + 1];
+        const meta = await redis.hgetall(`player:${id}`);
+
+        const [_, regionName, modeName] = key.split(':');
+
+        allPlayers.push({
+          id,
+          name: meta.name,
+          score: Number(score),
+          region: regionName,
+          mode: modeName,
+        });
+        allPlayers.sort((a, b) => b.score - a.score);
+      }
+    }
+
+    res.status(200).json(allPlayers);
   } catch (error) {
     console.error('Redis Error:', error);
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
   }
 };
+
 
 export default {
   updateScore,
